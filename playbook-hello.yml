@@ -1,0 +1,13 @@
+---
+  - name: "Helloo"
+    hosts: localhost
+    connection: local
+    tasks:
+
+    - name: Write msg
+      command: echo "Hello World"
+      register: hello
+
+    - name: Print msg
+      debug:
+        msg: "{{ hello.stdout }}"

@@ -1,0 +1,49 @@
+---
+  - name: "Fork repos, set origin and upstream remotes"
+    hosts: localhost
+    gather_facts: no
+    vars:
+      src_gh_usr: octocat
+      dst_gh_usr: valeriocos
+      dst_folder: /tmp
+      repos:
+        - url: https://github.com/octocat/Hello-World
+
+    connection: local
+    tasks:
+
+    - name: Install git and hub
+      apt:
+        name:
+          - git
+          - hub
+        state: present
+
+    - name: Clone repo
+      git:
+        repo: "{{ item.url }}"
+        dest: "{{ dst_folder + '/' + item.url.split('/')[-1] }}"
+        force: yes
+      with_items:
+        - "{{ repos }}"
+
+    - name: Fork repo
+      shell:
+        cmd: hub fork
+        chdir: "{{ dst_folder + '/' + item.url.split('/')[-1] }}"
+      with_items:
+        - "{{ repos }}"
+
+    - name: Add upstream
+      shell:
+        cmd: /usr/bin/git remote add upstream {{ item.url }}
+        chdir: "{{ dst_folder + '/' + item.url.split('/')[-1] }}"
+      with_items:
+        - "{{ repos }}"
+
+    - name: Set origin
+      shell:
+        cmd: /usr/bin/git remote set-url origin {{ item.url | replace(src_gh_usr, dst_gh_usr) }}
+        chdir: "{{ dst_folder + '/' + item.url.split('/')[-1] }}"
+      with_items:
+        - "{{ repos }}"
